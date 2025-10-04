@@ -72,30 +72,69 @@ class DebugForm extends StatefulWidget {
 class _DebugFormState extends State<DebugForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  TimeOfDay? time = TimeOfDay.now();
+  TimeOfDay? _time;
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
+
+  void submit(TimeOfDay time, int driverID) {
+
+  }
 
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Row(
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(hintText: 'something'),
-                ),
-                FloatingActionButton(onPressed: () async => {
-                  time = await showTimePicker(
-                    context: context,
-                    initialTime: time ?? TimeOfDay.now()
-                  )
-                },
-                ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+              children: <Widget>[
+              Expanded(
+              child: TextFormField(
+                controller: _timeController,
+                readOnly: true,
+                decoration: const InputDecoration(
+                  hintText: 'Time'
+                  ),
+              ),
+            ),
+            FloatingActionButton(onPressed: () async {
+              final picked = await showTimePicker(
+              context: context, 
+              initialTime: _time ?? TimeOfDay.now()
+              );
+              if (picked != null) {
+                setState(() {
+                  _time = picked;
+                  _timeController.text = picked.format(context);
+                });
+              }
+          }
+            ),
+              ]
+          ),
+          Row(children: [
+            Expanded(child: TextFormField(
+              controller: _idController,
+              decoration: const InputDecoration(hintText: 'DriverID'),
+              keyboardType: TextInputType.number,
+            ))
+          ],),
+          /*TextFormField(
+            decoration: const InputDecoration(hintText: 'something'),
+          ),
+          */
           ElevatedButton(
               onPressed: () {
+                if (_time != null) {
+                  submit(_time!, int.parse(_idController.text));
+                }
               },
               child: const Text('Submit'),
-            )],
             )
-      );
+          ,
+        ],
+      ),
+    );
   }
 }
