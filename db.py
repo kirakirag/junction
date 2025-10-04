@@ -16,12 +16,22 @@ def getConnection():
 		host=credentials[0],
 		user=credentials[1],
 		password=credentials[2],
-		port=credentials[3]
+		port=credentials[3],
+		dbname=db_name
 	)
 	conn.autocommit = True
 	return conn
 
-def ensureDbExists(conn):
+def ensureDbExists():
+	credentials = getCredentials()
+	conn = psycopg2.connect(
+		host=credentials[0],
+		user=credentials[1],
+		password=credentials[2],
+		port=credentials[3]
+	)
+	conn.autocommit = True
+
 	cur = conn.cursor()
 	cur.execute("SELECT 1 FROM pg_database WHERE datname=%s;", (db_name,))
 	exists = cur.fetchone() is not None
@@ -36,7 +46,11 @@ def loadData():
 		df = pd.read_excel(xls, sheet_name=sheet_name)
 		df.to_sql(sheet_name, engine, if_exists="replace", index=False)
 
-conn = getConnection()
-ensureDbExists(conn)
-loadData()
-conn.close()
+def getData(conn, dateStr, cityId):
+	cur = conn.cursor()
+	cur.execute("""
+		Select count(*) from rides_trips 
+		where date=%s 
+		and city_id=%s
+	""", (dateStr, cityId,))
+	return cur.fetchone()[0]
